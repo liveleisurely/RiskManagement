@@ -1,0 +1,38 @@
+library(dplyr)
+
+rm(list=ls())
+
+
+data <- data.frame(
+  Risk_Interval = c("[-5.11,-4.87]", "(-4.87,-4.82]", "(-4.82,-4.79]", "(-4.79,-4.76]", "(-4.76,-4.73]", "(-4.73,-4.71]", "(-4.71,-4.69]", "(-4.69,-4.67]", "(-4.67,-4.65]", "(-4.65,-4.63]", "(-4.63,-4.61]", "(-4.61,-4.6]", "(-4.6,-4.58]", "(-4.58,-4.56]", "(-4.56,-4.54]", "(-4.54,-4.53]", "(-4.53,-4.51]", "(-4.51,-4.49]", "(-4.49,-4.47]", "(-4.47,-4.45]", "(-4.45,-4.42]", "(-4.42,-4.4]", "(-4.4,-4.37]", "(-4.37,-4.34]", "(-4.34,-4.31]", "(-4.31,-4.27]", "(-4.27,-4.22]", "(-4.22,-4.16]", "(-4.16,-4.07]", "(-4.07,-2.68]"),
+  Real_Occurrence_Rate = c(0.47, 0.53, 0.41, 0.50, 0.61, 0.61, 0.86, 1.16, 1.05, 1.02, 0.72, 1.05, 1.08, 0.97, 0.94, 0.80, 1.02, 1.16, 1.52, 1.69, 1.41, 1.69, 1.74, 2.35, 2.32, 2.40, 2.96, 3.09, 3.95, 4.86),
+  Population = c(3619, 3618, 3619, 3619, 3619, 3618, 3619, 3619, 3619, 3618, 3619, 3619, 3619, 3618, 3619, 3619, 3618, 3619, 3619, 3619, 3618, 3619, 3619, 3619, 3618, 3619, 3619, 3619, 3619, 3618),
+  Occurrence = c(17, 19, 15, 18, 22, 22, 31, 42, 38, 37, 26, 38, 39, 35, 34, 29, 37, 42, 55, 61, 51, 61, 63, 85, 84, 87, 107, 112, 143, 176)
+)
+
+# 묶고 싶은 구간 개수로 설정
+n = 15
+
+data <- data %>%
+  mutate(Grade = cut(Real_Occurrence_Rate, 
+                     breaks = quantile(Real_Occurrence_Rate, 
+                                       probs = seq(0, 1, length.out = n + 1), 
+                                       type = 1), 
+                     labels = FALSE, include.lowest = TRUE))
+
+# 등급별 발생자수 합산
+grade_data <- data %>%
+  group_by(Grade) %>%
+  summarize(Average_Real_Occurrence_Rate = mean(Real_Occurrence_Rate), Total_Occurrence = sum(Occurrence))
+
+# 등급 순서 재정렬 (단조 증가)
+grade_data <- grade_data[order(grade_data$Average_Real_Occurrence_Rate), ]
+
+# 막대 그래프 그리기
+barplot(grade_data$Total_Occurrence, names.arg = grade_data$Grade, col = "blue",
+        xlab = "Grade", ylab = "Total Occurrence",
+        main = "Total Occurrence by Grade")
+
+# 그래프 표시
+grid()
+
